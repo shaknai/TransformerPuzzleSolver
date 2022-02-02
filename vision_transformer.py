@@ -176,11 +176,13 @@ class VisionTransformer(nn.Module):
         )
         assert int(w0) == patch_pos_embed.shape[-2] and int(h0) == patch_pos_embed.shape[-1]
         patch_pos_embed = patch_pos_embed.permute(0, 2, 3, 1).view(1, -1, dim)
+	if mask==None:
+		mask=torch.zeros(npatch,)
         red_mask=torch.ones_like(mask)
         red_mask=red_mask-mask
         return torch.cat((class_pos_embed.unsqueeze(0), patch_pos_embed * red_mask[:,None]), dim=1)
 
-    def prepare_tokens(self, x,mask):
+    def prepare_tokens(self, x,mask=None):
         B, nc, w, h = x.shape
         x = self.patch_embed(x)  # patch linear embedding
 
@@ -194,7 +196,7 @@ class VisionTransformer(nn.Module):
         return self.pos_drop(x)
 
 
-    def forward(self, x,mask):
+    def forward(self, x,mask=None):
         x = self.prepare_tokens(x,mask)
         for blk in self.blocks:
             x = blk(x)
@@ -298,7 +300,7 @@ class locationHead(nn.Module):
         return x
 def produceMask(num_patches=196,num_masked=0)
     ind_masked=torch.randint(0,num_patches-1,(num_masked,))
-    mask=torch.zeros(num_patches)
+    mask=torch.zeros(num_patches,)
     mask[ind_masked]=1
     return mask
 
