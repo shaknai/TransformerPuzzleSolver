@@ -1,6 +1,6 @@
 from torch.nn.functional import one_hot
 
-class puzzleLoss(nn.Module):
+class puzzleLossCE(nn.Module):
     def __init__(self, num_patches):
         super().__init__()
         self.num_patches=num_patches
