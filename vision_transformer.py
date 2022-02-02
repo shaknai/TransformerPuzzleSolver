@@ -180,7 +180,11 @@ class VisionTransformer(nn.Module):
 		mask=torch.zeros(npatch,)
         red_mask=torch.ones_like(mask)
         red_mask=red_mask-mask
-        return torch.cat((class_pos_embed.unsqueeze(0), patch_pos_embed * red_mask[:,None]), dim=1)
+	nRep=patch_pos_embed.shape[1]/npatch
+	mul_mask=red_mask[0]*torch.ones(nRep)
+	for k in range(1,npatch-1):
+		mul_mask=torch.cat((mul_mask,red_mask[k]*torch.ones(nRep)),dim=1)
+        return torch.cat((class_pos_embed.unsqueeze(0), torch.mul(patch_pos_embed,mul_mask)), dim=1)
 
     def prepare_tokens(self, x,mask=None):
         B, nc, w, h = x.shape
@@ -284,6 +288,7 @@ class locationHead(nn.Module):
     def __init__(self, in_dim, num_patches):
         super().__init__()
         self.lin1=nn.Linear(in_dim, num_patches)
+	self.sm=nn.Softmax(dim=1)
         self.apply(self._init_weights)
 
     def _init_weights(self, m):
@@ -297,6 +302,7 @@ class locationHead(nn.Module):
         ind_hidden=(mask == 1).nonzero(as_tuple=True)[0]
         x=x[:,ind_hidden]
         x = self.lin1(x)
+	x = self.sm(x)
         return x
 def produceMask(num_patches=196,num_masked=0)
     ind_masked=torch.randint(0,num_patches-1,(num_masked,))
