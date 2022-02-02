@@ -1,2 +1,2 @@
 # TransformerPuzzleSolver
-We're aiming to teach a transformer model (starting at random) to find the permutation of a puzzle of shuffled tiles.
+We're aiming to self-train a transformer model using location preddiction of patches with masked position encoding
