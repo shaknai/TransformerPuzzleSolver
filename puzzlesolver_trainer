@@ -3,7 +3,7 @@ import torch
 import torchvision
 from JigsawImageLoader import DataLoader
 from torchvision import transforms
-from models import ViT
+from vision_transformer import VisionTransformer,locationHead,produceMask
 import time
 
 def train_epoch(model, optimizer, data_loader, loss_history, device):
