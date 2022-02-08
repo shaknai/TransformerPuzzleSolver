@@ -145,7 +145,7 @@ class VisionTransformer(nn.Module):
         self.norm = norm_layer(embed_dim)
 
         # Classifier head
-        self.head = nn.Linear(embed_dim, num_classes) if num_classes > 0 else nn.Identity()
+        # self.head = nn.Linear(embed_dim, num_classes) if num_classes > 0 else nn.Identity()
         
 
         trunc_normal_(self.pos_embed, std=.02)
@@ -272,10 +272,6 @@ class locationHead(nn.Module):
         x = self.lin1(x)
 	x = self.sm(x)
         return x
-def produceMask(num_patches=196,num_masked=0)
-    ind_masked=torch.randint(0,num_patches-1,(num_masked,))
-    mask=torch.zeros(num_patches,)
-    mask[ind_masked]=1
-    return mask
+
 
 	
