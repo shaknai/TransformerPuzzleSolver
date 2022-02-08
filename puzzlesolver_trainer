@@ -3,22 +3,23 @@ import torch
 import torchvision
 from JigsawImageLoader import DataLoader
 from torchvision import transforms
-from vision_transformer import VisionTransformer,locationHead,produceMask
+from vision_transformer import VisionTransformer,locationHead
 import time
 import utils
 from puzzleLoss import puzzleLossCE
 
 def train_epoch(model, optimizer, data_loader, loss_history, device):
   total_samples = len(data_loader.dataset)
-  model=utils.MultiCropWrapper(model,locationHead())
   model.train()
 
   for i, (data, original) in enumerate(data_loader):
     data = data.to(device)
-    # target = target.to(device)
+    num_patches=model.patch_embed.num_patches
+    mask=produceMask(num_patches=196,num_masked=1)
+    mask=mask.to(device)
     optimizer.zero_grad()
-    output = model(data)
-    loss = F.nll_loss(output, target)
+    output = model(data,mask)
+    loss = puzzleLossCE(output,mask)
     loss.backward()
     optimizer.step()
 
@@ -39,20 +40,24 @@ def evaluate(model, data_loader, loss_history, device):
   with torch.no_grad():
     for data, target in data_loader:
       data = data.to(device)
-      target = target.to(device)
-      output = F.log_softmax(model(data), dim=1)
-      loss = F.nll_loss(output, target, reduction='sum')
-      _, pred = torch.max(output, dim=1)
+      num_patches=model.patch_embed.num_patches
+      mask=produceMask(num_patches=196,num_masked=1)
+      mask=mask.to(device)
+      output = model(data,mask)
+      loss = puzzleLossCE(output,mask)
+      #_, pred = torch.max(output, dim=1)
       
       total_loss += loss.item()
-      correct_samples += pred.eq(target).sum()
+      #correct_samples += pred.eq(target).sum()
 
   avg_loss = total_loss / total_samples
   loss_history.append(avg_loss)
-  print('\nAverage test loss: ' + '{:.4f}'.format(avg_loss) +
-        '  Accuracy:' + '{:5}'.format(correct_samples) + '/' +
-        '{:5}'.format(total_samples) + ' (' +
-        '{:4.2f}'.format(100.0 * correct_samples / total_samples) + '%)\n')
+  
+  # print('\nAverage test loss: ' + '{:.4f}'.format(avg_loss) +
+  #      '  Accuracy:' + '{:5}'.format(correct_samples) + '/' +
+  #      '{:5}'.format(total_samples) + ' (' +
+  #      '{:4.2f}'.format(100.0 * correct_samples / total_samples) + '%)\n')
+  
 
 
 def train_vit():
@@ -96,7 +101,10 @@ def train_vit():
     # print('Images: train %d, validation %d'%(train_set.N,test_set.N))
 
   # Initialize model
-  model = ViT(28, 7, 1, 10, 64, 6, 8, .02).to(device)
+  headLoc=locationHead(in_dim=768,num_patches=196)
+  model=VisionTransformer()
+  model=utils.MultiCropWrapper(model,locationHead())
+  model = model.to(device)
     
   optimizer = torch.optim.Adam(model.parameters(), lr=0.003)
 
@@ -111,3 +119,8 @@ def train_vit():
 
   print('Execution time:', '{:5.2f}'.format((time.time() - start_time) / 60), 'minutes')
 
+def produceMask(num_patches=196,num_masked=0)
+    ind_masked=torch.randint(0,num_patches-1,(num_masked,))
+    mask=torch.zeros(num_patches,)
+    mask[ind_masked]=1
+    return mask
