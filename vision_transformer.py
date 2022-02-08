@@ -1,3 +1,8 @@
+"""
+
+Mostly copy-paste from Facebook DINO
+https://github.com/facebookresearch/dino/blob/main/vision_transformer.py
+"""
 
 import math
 from functools import partial
