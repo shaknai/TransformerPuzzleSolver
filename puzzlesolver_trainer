@@ -62,6 +62,13 @@ def evaluate(model, data_loader, loss_history, device):
 
 def train_vit():
 
+
+  # set random seed
+  seed=42
+  torch.manual_seed(seed)
+  #random.seed(seed)
+  
+  
   device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
   start_time = time.time()
 
@@ -103,7 +110,7 @@ def train_vit():
   # Initialize model
   headLoc=locationHead(in_dim=768,num_patches=196)
   model=VisionTransformer()
-  model=utils.MultiCropWrapper(model,locationHead())
+  model=utils.MultiCropWrapper(model,headLoc)
   model = model.to(device)
     
   optimizer = torch.optim.Adam(model.parameters(), lr=0.003)
