@@ -5,16 +5,19 @@ from JigsawImageLoader import DataLoader
 from torchvision import transforms
 from vision_transformer import VisionTransformer,locationHead,produceMask
 import time
+import utils
+from puzzleLoss import puzzleLossCE
 
 def train_epoch(model, optimizer, data_loader, loss_history, device):
   total_samples = len(data_loader.dataset)
+  model=utils.MultiCropWrapper(model,locationHead())
   model.train()
 
   for i, (data, original) in enumerate(data_loader):
     data = data.to(device)
     # target = target.to(device)
     optimizer.zero_grad()
-    output = F.log_softmax(model(data), dim=1)
+    output = model(data)
     loss = F.nll_loss(output, target)
     loss.backward()
     optimizer.step()
