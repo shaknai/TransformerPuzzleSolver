@@ -10,9 +10,9 @@ def train_epoch(model, optimizer, data_loader, loss_history, device):
   total_samples = len(data_loader.dataset)
   model.train()
 
-  for i, (data, target) in enumerate(data_loader):
+  for i, (data, original) in enumerate(data_loader):
     data = data.to(device)
-    target = target.to(device)
+    # target = target.to(device)
     optimizer.zero_grad()
     output = F.log_softmax(model(data), dim=1)
     loss = F.nll_loss(output, target)
