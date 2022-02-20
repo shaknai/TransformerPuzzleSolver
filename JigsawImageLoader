@@ -53,6 +53,22 @@ class DataLoader(data.Dataset):
             norm = transforms.Normalize(mean=m.tolist(), std=s.tolist())
             tile = norm(tile)
             tiles[n] = tile
+            
+        cat_tiles = [None] * 3
+        for n in range(9):
+            j = n % 3
+            if j == 0:
+                cat_tiles[j] = tiles[n]
+            else:
+                cat_tiles[j] = torch.cat((cat_tiles[j], tiles[n]),0)
+                
+        img_rc = [None]
+        for n in range(3):
+            j = n % 3
+            if n == 0:
+                img_rc = cat_tiles[n]
+            else:
+                img_rc = torch.cat((img_rc, cat_tiles[n]),1)
 
         # order = np.random.randint(len(self.permutations))
         # data = [tiles[self.permutations[order][t]] for t in range(9)]
